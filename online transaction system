@@ -1,0 +1,111 @@
+#include <iostream>
+using namespace std;
+
+class User {
+public:
+    User(const string username, const string password)
+        : username(username), password(password), balance(0) {}
+
+    const string& getUsername() const {
+        return username;
+    }
+
+    bool authenticate(const string inputPassword) const {
+        return inputPassword == password;
+    }
+
+    double getBalance() const {
+        return balance;
+    }
+
+    void deposit(double amount) {
+        balance += amount;
+    }
+
+    bool withdraw(double amount) {
+        if (amount <= balance) {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    void showBalance() const {
+        cout << "Current balance for " << username << ": " << balance << endl;
+    }
+private:
+    string username;
+    string password;
+    double balance;
+};
+class TransactionSystem {
+public:
+    TransactionSystem() : userCount(0) {}
+
+    void addUser(User* user) {
+        if (userCount < MaxUsers) {
+            users[userCount++] = user;
+        }
+    }
+    User* findUser(const string username) {
+        for (int i = 0; i < userCount; ++i) {
+            if (users[i]->getUsername() == username) {
+                return users[i];
+            }
+        }
+        return nullptr;
+    }
+    void performTransaction(User* sender, User* receiver, double amount) {
+        if (!sender || !receiver) {
+            cout << "Invalid users." << endl;
+            return;
+        }
+
+        sender->withdraw(amount);
+        receiver->deposit(amount);
+        cout << "Amount of " << amount << " has been sent from " << sender->getUsername() << " to " << receiver->getUsername() << endl;
+        sender->showBalance(); // Show sender's current balance
+    }
+private:
+    static const int MaxUsers = 10; // Maximum number of users
+    User* users[MaxUsers];
+    int userCount;
+};
+int main() {
+    TransactionSystem system;
+
+    User Tisha("Tisha", "123456");
+    User Preksha("Preksha", "789012");
+
+    system.addUser(&Tisha);
+    system.addUser(&Preksha);
+
+    string username, password;
+    cout<<"Enter your username: ";
+    cin>>username;
+    cout<<"Enter your password: ";
+    cin>>password;
+
+    User* currentUser = system.findUser(username);
+    if (currentUser && currentUser->authenticate(password)) {
+        cout << "Welcome, "<<username<<"!"<<endl;
+
+        double amount;
+        cout<<"Enter amount to transfer: ";
+        cin>>amount;
+
+        string receiverUsername;
+        cout<<"Enter the receiver's username: ";
+        cin>>receiverUsername;
+
+        User* receiver = system.findUser(receiverUsername);
+        if (receiver) {
+            system.performTransaction(currentUser, receiver, amount);
+        } else {
+            cout<<"Receiver not found. "<<endl;
+        }
+    } else {
+        cout<<"Authentication failed. "<<endl;
+    }
+    return 0;
+}
